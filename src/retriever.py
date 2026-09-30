@@ -15,7 +15,8 @@ def tokenize(text):
 class Retriever:
     def __init__(self):
         self.model = SentenceTransformer(EMBEDDING_MODEL)
-        self.reranker = None  # loaded only when needed
+        ##self.reranker = None  # loaded only when needed
+        self.reranker = CrossEncoder(RERANK_MODEL)
         client = chromadb.PersistentClient(path=CHROMA_DIR)
         self.col = client.get_collection(COLLECTION_NAME)
 
