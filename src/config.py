@@ -11,7 +11,7 @@ COLLECTION_NAME = "policies"
 
 EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-LLM_MODEL = "llama-3.3-70b-versatile"
+LLM_MODEL = "openai/gpt-oss-120b"
 
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 100

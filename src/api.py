@@ -1,93 +1,64 @@
-# import time
-# from groq import Groq
-# from src.config import GROQ_API_KEY, LLM_MODEL
-
-# client = Groq(api_key=GROQ_API_KEY)
-
-# NO_ANSWER = "No answer found in the provided policy documents."
-
-# SYSTEM = (
-#     "You answer questions about insurance policies using ONLY the numbered "
-#     "context passages provided. Cite the passages you use like [1] or [2]. "
-#     "If the context does not contain the answer, reply with exactly: NO_ANSWER. "
-#     "Never use outside knowledge."
-# )
-
-
-# def answer(question, chunks):
-#     if not chunks:
-#         return {"answer": NO_ANSWER, "sources": []}
-
-#     context = "\n\n".join(
-#         f"[{i + 1}] ({c['source']}, page {c['page']})\n{c['text']}"
-#         for i, c in enumerate(chunks)
-#     )
-#     user = f"Context:\n{context}\n\nQuestion: {question}"
-
-#     for attempt in range(3):  # simple retry for rate limits
-#         try:
-#             resp = client.chat.completions.create(
-#                 model=LLM_MODEL,
-#                 temperature=0,
-#                 messages=[{"role": "system", "content": SYSTEM},
-#                           {"role": "user", "content": user}],
-#             )
-#             break
-#         except Exception as e:
-#             if attempt == 2:
-#                 raise
-#             time.sleep(2 * (attempt + 1))
-
-#     text = resp.choices[0].message.content.strip()
-#     if "NO_ANSWER" in text:
-#         return {"answer": NO_ANSWER, "sources": []}
-
-#     sources = [{"file": c["source"], "page": c["page"],
-#                 "snippet": c["text"][:200]} for c in chunks]
-#     return {"answer": text, "sources": sources}
-
-
-# if __name__ == "__main__":
-#     from src.retriever import Retriever
-#     r = Retriever()
-#     q = input("Question: ")
-#     out = answer(q, r.retrieve(q))
-#     print(out["answer"])
-#     for s in out["sources"]:
-#         print(f"  - {s['file']} p.{s['page']}")
-
+import json
+import os
 import time
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from typing import Optional
+ 
+from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from src.retriever import Retriever
+ 
 from src.generator import answer
-
+from src.retriever import Retriever
+ 
+USERS_PATH = os.getenv("USERS_PATH", "config/users.json")
 state = {}
-
-
+ 
+ 
 @asynccontextmanager
 async def lifespan(app):
     state["retriever"] = Retriever()
+    with open(USERS_PATH, encoding="utf-8") as f:
+        state["users"] = json.load(f)
     yield
-
-
+ 
+ 
 app = FastAPI(title="Policy RAG Assistant", lifespan=lifespan)
-
-
+ 
+ 
 class Question(BaseModel):
     question: str
-
-
+ 
+ 
+def current_user(x_user_id: Optional[str] = Header(default=None)):
+    """Demo-level auth: the X-User-Id header selects a permission set.
+    A real deployment would verify a signed token instead."""
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="Missing X-User-Id header")
+    perms = state["users"].get(x_user_id)
+    if perms is None:
+        raise HTTPException(status_code=403, detail="Unknown user")
+    allowed = None if "*" in perms else set(perms)
+    return x_user_id, allowed
+ 
+ 
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
+ 
+ 
 @app.post("/ask")
-def ask(body: Question):
+def ask(body: Question, user=Depends(current_user)):
+    user_id, allowed = user
     start = time.time()
-    chunks = state["retriever"].retrieve(body.question)
+    chunks = state["retriever"].retrieve(body.question, allowed=allowed)
     result = answer(body.question, chunks)
+    result["user"] = user_id
     result["latency_ms"] = int((time.time() - start) * 1000)
     return result
-
-
+ 
+ 
 @app.get("/health")
 def health():
     return {"status": "ok"}
+ 

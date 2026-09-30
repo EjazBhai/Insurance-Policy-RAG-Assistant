@@ -1,0 +1,14 @@
+{
+  "admin": [
+    "*"
+  ],
+  "alice": [
+    "Health Protector Policy Wording.pdf",
+    "a-plus-health-insurance-policy-wording.pdf"
+  ],
+  "bob": [
+    "religare-health-care-advantage-policy-wordings.pdf",
+    "20240325_Prospectus_IHIP.pdf"
+  ],
+  "guest": []
+}
