@@ -10,11 +10,14 @@ def load_pdfs(folder):
     files = [f for f in os.listdir(folder) if f.lower().endswith(".pdf")]
     pages = []
     for f in files:
-        reader = PdfReader(os.path.join(folder, f))
-        for i, page in enumerate(reader.pages, start=1):
-            text = (page.extract_text() or "").strip()
-            if text:
-                pages.append({"text": text, "source": f, "page": i})
+        try:
+            reader = PdfReader(os.path.join(folder, f))
+            for i, page in enumerate(reader.pages, start=1):
+                text = (page.extract_text() or "").strip()
+                if text:
+                    pages.append({"text": text, "source": f, "page": i})
+        except Exception as e:
+            print(f"  Skipping {f}: {e}")
     return files, pages
 
 
