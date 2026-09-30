@@ -6,3 +6,4 @@ groq
 python-dotenv
 fastapi
 uvicorn
+cryptography
