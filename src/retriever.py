@@ -1,12 +1,18 @@
 import re
- 
+
 import chromadb
 from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer, CrossEncoder
- 
-from src.config import (CHROMA_DIR, COLLECTION_NAME, EMBEDDING_MODEL,
-                        RERANK_MODEL, TOP_K, CANDIDATES)
- 
+from sentence_transformers import CrossEncoder, SentenceTransformer
+
+from src.config import (
+    CANDIDATES,
+    CHROMA_DIR,
+    COLLECTION_NAME,
+    EMBEDDING_MODEL,
+    RERANK_MODEL,
+    TOP_K,
+)
+
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
  
  

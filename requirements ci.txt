@@ -1,0 +1,9 @@
+pypdf
+chromadb
+sentence-transformers
+rank-bm25
+groq
+python-dotenv
+fastapi
+uvicorn
+cryptography

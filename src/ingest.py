@@ -1,9 +1,17 @@
 import os
+
 import chromadb
 from pypdf import PdfReader
 from sentence_transformers import SentenceTransformer
-from src.config import (RAW_DATA_DIR, CHROMA_DIR, COLLECTION_NAME,
-                        EMBEDDING_MODEL, CHUNK_SIZE, CHUNK_OVERLAP)
+
+from src.config import (
+    CHROMA_DIR,
+    CHUNK_OVERLAP,
+    CHUNK_SIZE,
+    COLLECTION_NAME,
+    EMBEDDING_MODEL,
+    RAW_DATA_DIR,
+)
 
 
 def load_pdfs(folder):
