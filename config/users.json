@@ -1,14 +1,32 @@
 {
-  "admin": [
-    "*"
-  ],
-  "alice": [
-    "Health Protector Policy Wording.pdf",
-    "a-plus-health-insurance-policy-wording.pdf"
-  ],
-  "bob": [
-    "religare-health-care-advantage-policy-wordings.pdf",
-    "20240325_Prospectus_IHIP.pdf"
-  ],
-  "guest": []
+  "users": {
+    "admin": {
+      "key_hash": "06deca2a4bba30c59bf69996651b719933155ac578efe2c65f676f41d8048dc3",
+      "sources": [
+        "*"
+      ],
+      "rate_limit_per_min": 30
+    },
+    "alice": {
+      "key_hash": "1bbef6d9952d7117bdce84ee41e4350dce2751055399b94b3e77baf811b9d992",
+      "sources": [
+        "Health Protector Policy Wording.pdf",
+        "a-plus-health-insurance-policy-wording.pdf"
+      ],
+      "rate_limit_per_min": 20
+    },
+    "bob": {
+      "key_hash": "5e3eb610a7b6eb26682dcf474842e21ab7a565b8fd171b6ff7c0a8c3e40f3e4d",
+      "sources": [
+        "religare-health-care-advantage-policy-wordings.pdf",
+        "20240325_Prospectus_IHIP.pdf"
+      ],
+      "rate_limit_per_min": 20
+    },
+    "guest": {
+      "key_hash": "d5ffa3dd8053cc856011a8dce5655af7c6a5a69cbfe2cfeefe5b0d735f4663ad",
+      "sources": [],
+      "rate_limit_per_min": 5
+    }
+  }
 }
