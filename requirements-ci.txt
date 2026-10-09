@@ -8,3 +8,5 @@ fastapi
 uvicorn
 cryptography
 ruff
+
+pytest>=7.0.0
