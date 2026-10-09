@@ -101,3 +101,134 @@ def test_llm_failure_is_503_not_a_crash():
         raise RuntimeError("groq down")
     c, _ = make_client(answer_fn=boom)
     assert ask(c, "k-admin").status_code == 503
+
+
+
+def test_claim_assessment_requires_api_key():
+    c, _ = make_client()
+
+    response = c.post(
+        "/claims/assess",
+        json={
+            "items": [
+                {
+                    "category": "hospital",
+                    "description": "Hospital charges",
+                    "amount": 10000,
+                    "payable": True,
+                }
+            ],
+            "required_facts_complete": True,
+        },
+    )
+
+    assert response.status_code == 401
+
+
+def test_claim_assessment_requires_review_without_policy_evidence():
+    c, _ = make_client()
+
+    response = c.post(
+        "/claims/assess",
+        headers={"X-API-Key": "k-admin"},
+        json={
+            "items": [
+                {
+                    "category": "hospital",
+                    "description": "Hospital charges",
+                    "amount": 10000,
+                    "payable": True,
+                }
+            ],
+            "required_facts_complete": True,
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["eligibility_status"] == "requires_review"
+    assert body["payout_status"] == "not_estimated"
+    assert body["estimate"] is None
+    assert body["request_id"]
+
+
+def test_claim_assessment_rejects_invalid_amount():
+    c, _ = make_client()
+
+    response = c.post(
+        "/claims/assess",
+        headers={"X-API-Key": "k-admin"},
+        json={
+            "items": [
+                {
+                    "category": "hospital",
+                    "description": "Hospital charges",
+                    "amount": -100,
+                    "payable": True,
+                }
+            ],
+            "required_facts_complete": True,
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_claim_assessment_only_returns_authorized_policy_evidence():
+    c, _ = make_client()
+
+    response = c.post(
+        "/claims/assess",
+        headers={"X-API-Key": "k-alice"},
+        json={
+            "items": [
+                {
+                    "category": "hospital",
+                    "description": "Hospital charges",
+                    "amount": 10000,
+                    "payable": True,
+                }
+            ],
+            "required_facts_complete": True,
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+    evidence = body["evidence"]
+
+    assert evidence
+    assert {item["source"] for item in evidence} == {"a.pdf"}
+    assert all(item["verified"] is False for item in evidence)
+    assert body["payout_status"] == "not_estimated"
+    assert body["estimate"] is None
+
+
+
+def test_claim_assessment_with_no_document_access():
+    c, _ = make_client()
+
+    response = c.post(
+        "/claims/assess",
+        headers={"X-API-Key": "k-guest"},
+        json={
+            "items": [
+                {
+                    "category": "hospital",
+                    "description": "Hospital charges",
+                    "amount": 10000,
+                    "payable": True,
+                }
+            ],
+            "required_facts_complete": True,
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+    assert body["eligibility_status"] == "requires_review"
+    assert body["evidence"] == []
+    assert body["payout_status"] == "not_estimated"
+    assert body["estimate"] is None
