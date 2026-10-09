@@ -75,6 +75,30 @@ def extract_rule_candidates(
         # Avoid classifying negated exclusion statements as exclusions.
         
 
+        # exclusion_is_negated = any(
+        #     phrase in normalized
+        #     for phrase in (
+        #         "not excluded",
+        #         "no exclusion",
+        #         "isn't excluded",
+        #         "is not excluded",
+        #         "exclusion does not apply",
+        #         "exclusion doesn't apply",
+        #         "exclusion shall not apply",
+        #         "exclusion will not apply",
+        #         "exclusion is inapplicable",
+        #     )
+        # )
+
+        
+        review_phrases = (
+            "exclusion does not apply",
+            "exclusion doesn't apply",
+            "exclusion shall not apply",
+            "exclusion will not apply",
+            "exclusion is inapplicable",
+        )
+
         exclusion_is_negated = any(
             phrase in normalized
             for phrase in (
@@ -82,13 +106,28 @@ def extract_rule_candidates(
                 "no exclusion",
                 "isn't excluded",
                 "is not excluded",
-                "exclusion does not apply",
-                "exclusion doesn't apply",
-                "exclusion shall not apply",
-                "exclusion will not apply",
-                "exclusion is inapplicable",
             )
         )
+
+        requires_review = any(
+            phrase in normalized for phrase in review_phrases
+        )
+
+        if requires_review:
+            candidate = PolicyRuleCandidate(
+                rule_type="review",
+                source=source,
+                page=page,
+                excerpt=text,
+            )
+            key = ("review", source, page, text)
+
+            if key not in seen:
+                candidates.append(candidate)
+                seen.add(key)
+
+            continue
+
 
         for rule_type, phrases in RULE_PATTERNS.items():
             if rule_type == "exclusion" and exclusion_is_negated:
