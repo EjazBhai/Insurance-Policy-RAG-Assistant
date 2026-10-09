@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: policy-rag-api-compose
+    ports:
+      - "8001:7860"
+    env_file:
+      - .env
+    environment:
+      USERS_PATH: config/users.json
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: policy-rag-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      POLICY_API_URL: http://backend:7860
+      POLICY_API_KEY: ""
+    depends_on:
+      - backend
+    restart: unless-stopped
