@@ -111,7 +111,7 @@ st.markdown(
       html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
       .stApp { background: radial-gradient(ellipse at 80% 0%, rgba(83, 92, 255, .08), transparent 34%), #f6f8fc; }
       .block-container { max-width: 1400px; padding-top: 1.6rem; padding-bottom: 3rem; }
-      h1, h2, h3 { font-family: 'Manrope', sans-serif !important; letter-spacing: -0.035em; }
+      h1, h2, h3 { font-family: 'Manrope', sans-serif !important; letter-spacing: -0.035em; color: #182448 !important; }
       [data-testid="stSidebar"] { background: #10162a; }
       [data-testid="stSidebar"] * { color: #e8ecff !important; }
       [data-testid="stSidebar"] input, [data-testid="stSidebar"] [data-baseweb="select"] { color: #1f2937 !important; }
@@ -120,8 +120,8 @@ st.markdown(
       .hero p { color: #e2e7ff; font-size: 1.02rem; max-width: 760px; margin-bottom: 0; }
       .eyebrow { color: #bfcaff; text-transform: uppercase; font-size: .72rem; font-weight: 800; letter-spacing: .16em; }
       .pill { display: inline-block; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.12); border-radius: 999px; padding: .3rem .7rem; font-size: .76rem; margin-bottom: .2rem; }
-      .section-kicker { color: #5d66a7; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: .72rem; margin: .3rem 0 .25rem 0; }
-      .subtle { color: #64708a; font-size: .92rem; }
+      .section-kicker { color: #424f91; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: .72rem; margin: .3rem 0 .25rem 0; }
+      .subtle { color: #46516b; font-size: .92rem; }
       .status-card { background: white; border: 1px solid #e3e8f3; border-radius: 16px; padding: 1rem 1.1rem; min-height: 108px; box-shadow: 0 4px 18px rgba(29, 42, 87, .035); }
       .status-label { color: #717b95; font-size: .8rem; font-weight: 700; margin-bottom: .55rem; }
       .status-value { color: #182448; font-family: 'Manrope', sans-serif; font-size: 1.12rem; font-weight: 800; }
@@ -129,13 +129,209 @@ st.markdown(
       .info-strip { border: 1px solid #d9e4ff; background: #eef3ff; border-radius: 13px; padding: .85rem 1rem; color: #293b72; }
       .warn-strip { border: 1px solid #f1ddb0; background: #fff8e9; border-radius: 13px; padding: .85rem 1rem; color: #7a5211; }
       .stTabs [data-baseweb="tab-list"] { gap: .35rem; background: #edf1fa; border-radius: 13px; padding: .35rem; }
-      .stTabs [data-baseweb="tab"] { border-radius: 9px; padding: .6rem 1rem; color: #5c6680; }
+      .stTabs [data-baseweb="tab"] {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+.stTabs [data-baseweb="tab"] p,
+.stTabs [data-baseweb="tab"] span {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stMetricLabel"],
+div[data-testid="stMetricLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stWidgetLabel"],
+div[data-testid="stWidgetLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+} { border-radius: 9px; padding: .6rem 1rem; color: #39445e !important; }
       .stTabs [aria-selected="true"] { background: #fff !important; color: #29358d !important; box-shadow: 0 2px 8px rgba(24, 36, 72, .08); }
       div[data-testid="stMetric"] { background: #fff; border: 1px solid #e3e8f3; padding: 1rem 1.1rem; border-radius: 15px; box-shadow: 0 4px 18px rgba(29, 42, 87, .035); }
-      div[data-testid="stMetricLabel"] { color: #65708b; }
-      div[data-testid="stMetricValue"] { color: #182448; font-family: 'Manrope', sans-serif; }
+      div[data-testid="stMetricLabel"] { color: #46516b !important; font-weight: 700; }
+      div[data-testid="stMetricValue"] { color: #182448 !important; font-family: 'Manrope', sans-serif; }
       .footer { color: #7b8499; font-size: .78rem; border-top: 1px solid #e0e6f1; margin-top: 2rem; padding-top: 1rem; }
       .small-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #eef1f8; border-radius: 6px; padding: .15rem .35rem; color: #38416b; }
+
+      /* High-contrast labels and navigation */
+      div[data-testid="stMetricLabel"],
+      div[data-testid="stMetricLabel"] *,
+      div[data-testid="stMetricLabel"] p {
+        color: #39445e !important;
+        opacity: 1 !important;
+      }
+      .stTabs [data-baseweb="tab"] {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+.stTabs [data-baseweb="tab"] p,
+.stTabs [data-baseweb="tab"] span {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stMetricLabel"],
+div[data-testid="stMetricLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stWidgetLabel"],
+div[data-testid="stWidgetLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+},
+      .stTabs [data-baseweb="tab"] {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+.stTabs [data-baseweb="tab"] p,
+.stTabs [data-baseweb="tab"] span {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stMetricLabel"],
+div[data-testid="stMetricLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stWidgetLabel"],
+div[data-testid="stWidgetLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+} *,
+      .stTabs [data-baseweb="tab"] {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+.stTabs [data-baseweb="tab"] p,
+.stTabs [data-baseweb="tab"] span {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stMetricLabel"],
+div[data-testid="stMetricLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stWidgetLabel"],
+div[data-testid="stWidgetLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+} p,
+      .stTabs [data-baseweb="tab"] {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+.stTabs [data-baseweb="tab"] p,
+.stTabs [data-baseweb="tab"] span {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stMetricLabel"],
+div[data-testid="stMetricLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+}
+
+div[data-testid="stWidgetLabel"],
+div[data-testid="stWidgetLabel"] p {
+    color: #25304a !important;
+    opacity: 1 !important;
+} span {
+        color: #39445e !important;
+        opacity: 1 !important;
+      }
+      .stTabs [aria-selected="true"],
+      .stTabs [aria-selected="true"] * {
+        color: #28377a !important;
+      }
+      [data-testid="stMarkdownContainer"] h2,
+      [data-testid="stMarkdownContainer"] h3 {
+        color: #182448 !important;
+      }
+      .status-label, .status-value, .status-caption {
+        opacity: 1 !important;
+      }
+      div[data-testid="stMetricValue"],
+      div[data-testid="stMetricValue"] * {
+        color: #182448 !important;
+        opacity: 1 !important;
+      }
+    
+      /* Final hero and code contrast fix */
+
+      /* Restore contrast inside the blue hero banner */
+      .stApp .hero,
+      .stApp .hero * {
+        color: #f4f6ff !important;
+        -webkit-text-fill-color: #f4f6ff !important;
+      }
+
+      .stApp .hero h1 {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+      }
+
+      .stApp .hero p {
+        color: #e5eaff !important;
+        -webkit-text-fill-color: #e5eaff !important;
+      }
+
+      .stApp .hero .eyebrow {
+        color: #cbd5ff !important;
+        -webkit-text-fill-color: #cbd5ff !important;
+      }
+
+      .stApp .hero .pill {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        background: rgba(255,255,255,.13) !important;
+        border-color: rgba(255,255,255,.35) !important;
+      }
+
+      /* Use light code surfaces with readable dark text */
+      .stApp [data-testid="stMarkdownContainer"] code,
+      .stApp code {
+        background: #e9edf6 !important;
+        color: #263451 !important;
+        -webkit-text-fill-color: #263451 !important;
+        border: 1px solid #d9e0ed !important;
+        border-radius: 5px !important;
+      }
+
+      .stApp [data-testid="stCode"],
+      .stApp [data-testid="stCode"] pre,
+      .stApp [data-testid="stCode"] code,
+      .stApp pre,
+      .stApp pre code {
+        background: #f0f3f9 !important;
+        color: #263451 !important;
+        -webkit-text-fill-color: #263451 !important;
+        border-color: #d9e0ed !important;
+        text-shadow: none !important;
+      }
+
+      .stApp [data-testid="stCode"] *,
+      .stApp pre span {
+        color: #263451 !important;
+        -webkit-text-fill-color: #263451 !important;
+      }
+
     </style>
     """,
     unsafe_allow_html=True,
