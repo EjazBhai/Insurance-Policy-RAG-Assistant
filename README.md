@@ -166,6 +166,52 @@ The evaluation dashboard code and deployment notes are in `eval/hf_space/` and `
 - Image-only scanned PDFs are not supported unless OCR is added.
 - Groq rate limits and model availability may affect latency and throughput.
 - This tool helps locate policy wording; it does not replace the full policy contract or professional advice.
+The project includes a 40-question retrieval benchmark and a separate generation evaluation to assess retrieval quality, answer grounding, and latency.
+
+### Retrieval Evaluation
+
+A retrieval hit means the expected source file and page appear within the top 5 retrieved results.
+
+| Retrieval strategy | Hit Rate@5 | MRR |
+|---|---:|---:|
+| Semantic search | 78% | 0.630 |
+| Hybrid search (semantic + BM25) | 82% | 0.670 |
+| Hybrid search + re-ranking | **93%** | **0.790** |
+
+**Key finding:** Hybrid retrieval with re-ranking achieved the highest measured retrieval performance on the 40-question evaluation set.
+
+### Generation Evaluation
+
+| Metric | Measured result |
+|---|---:|
+| Questions evaluated | 30 |
+| Answered rate | 100% |
+| LLM-judged groundedness | 97% |
+| Median latency | 9.05 seconds |
+| P95 latency | 11.82 seconds |
+
+Groundedness is estimated using an LLM judge and should not be interpreted as a human-verified accuracy score.
+
+### How to Reproduce
+
+Run the evaluation modules from the project environment:
+
+```bash
+python -m eval.hit_rate
+python -m eval.judge
+```
+
+The generation evaluation requires the configured LLM API credentials. Results are saved in the evaluation reports.
+
+### Evaluation Limitations
+
+- The benchmark contains 40 labelled retrieval questions and 30 generation-evaluation questions.
+- Evaluation questions were generated from indexed chunks, so wording overlap may make retrieval results optimistic.
+- Groundedness is scored by an LLM judge, not independently verified by human reviewers.
+- Similar wording across insurance documents can affect source matching.
+- Scanned image-only PDFs are not supported without OCR.
+- Latency and API availability depend on the model provider and runtime environment.
+
 
 ## 📚 Sample Policy Sources
 
