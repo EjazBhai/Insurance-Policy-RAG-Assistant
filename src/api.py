@@ -2,21 +2,20 @@ import os
 import time
 import uuid
 from contextlib import asynccontextmanager
+from dataclasses import asdict
+from decimal import Decimal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, field_validator
 
+from src.claims.evidence import extract_evidence_candidates
+from src.claims.schemas import Claim as ClaimData
+from src.claims.schemas import LineItem
+from src.claims.service import assess_claim
 from src.observability import log, log_event, setup_logging
 from src.security import RateLimiter, User, UserStore
-
-from dataclasses import asdict
-from decimal import Decimal
-
-from src.claims.schemas import Claim as ClaimData, LineItem
-from src.claims.service import assess_claim
-from src.claims.evidence import extract_evidence_candidates
 
 USERS_PATH = os.getenv("USERS_PATH", "config/users.json")
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)

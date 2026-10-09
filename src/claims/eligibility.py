@@ -2,7 +2,6 @@
 from dataclasses import dataclass, field
 from typing import Literal
 
-
 EligibilityStatus = Literal[
     "likely_covered",
     "likely_excluded",
@@ -80,8 +79,8 @@ def assess_eligibility(
             return EligibilityResult(
                 status="requires_review",
                 reasons=[
-                    "At least one policy finding lacks verified, "
-                    "traceable evidence."
+                    ("At least one policy finding lacks verified, "
+                    "traceable evidence.")
                 ],
                 evidence=findings,
                 missing_information=[
@@ -115,8 +114,8 @@ def assess_eligibility(
         return EligibilityResult(
             status="requires_review",
             reasons=[
-                "Both coverage-supporting and exclusion findings exist; "
-                "their applicability must be reconciled."
+                ("Both coverage-supporting and exclusion findings exist; "
+                "their applicability must be reconciled.")
             ],
             evidence=findings,
             missing_information=[

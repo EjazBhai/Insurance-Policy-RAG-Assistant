@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Optional
 
 
 def D(x) -> Decimal:
@@ -24,9 +23,9 @@ class Claim:
 @dataclass
 class PolicyTerms:
     sum_insured_remaining: Decimal
-    room_rent_cap_per_day: Optional[Decimal] = None
-    deductible: Decimal = Decimal("0")
-    copay_pct: Decimal = Decimal("0")
+    room_rent_cap_per_day: Decimal | None = None
+    deductible: Decimal = Decimal(0)
+    copay_pct: Decimal = Decimal(0)
     sublimits: dict = field(default_factory=dict)  # category -> max payable
     proportionate: frozenset = frozenset({"surgeon", "anesthesia", "ot", "procedure"})
     clauses: dict = field(default_factory=dict)    # rule name -> citation text

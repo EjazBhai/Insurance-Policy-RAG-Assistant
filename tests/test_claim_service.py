@@ -1,8 +1,8 @@
 
 from decimal import Decimal
 
-from src.claims.schemas import Claim, LineItem, PolicyTerms
 from src.claims.eligibility import PolicyFinding
+from src.claims.schemas import Claim, LineItem, PolicyTerms
 from src.claims.service import assess_claim
 
 
@@ -12,7 +12,7 @@ def make_claim():
             LineItem(
                 category="hospital",
                 description="Hospital charges",
-                amount=Decimal("10000"),
+                amount=Decimal(10000),
                 payable=True,
             )
         ]
@@ -21,9 +21,9 @@ def make_claim():
 
 def make_terms():
     return PolicyTerms(
-        sum_insured_remaining=Decimal("50000"),
-        deductible=Decimal("1000"),
-        copay_pct=Decimal("10"),
+        sum_insured_remaining=Decimal(50000),
+        deductible=Decimal(1000),
+        copay_pct=Decimal(10),
         clauses={
             "deductible": "Policy clause 4.1",
             "copay": "Policy clause 4.2",

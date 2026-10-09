@@ -1,6 +1,5 @@
 
 from dataclasses import dataclass, field
-from decimal import Decimal
 
 from src.claims.calculator import estimate_payout
 from src.claims.eligibility import (
