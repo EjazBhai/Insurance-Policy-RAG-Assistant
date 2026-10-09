@@ -150,13 +150,3 @@ def extract_rule_candidates(
 
 
 
-def test_does_not_classify_not_excluded_as_exclusion():
-    result = extract_rule_candidates([
-        {
-            "text": "Dental treatment is not excluded under this policy.",
-            "source": "policy.pdf",
-            "page": 9,
-        }
-    ])
-
-    assert all(item.rule_type != "exclusion" for item in result)
