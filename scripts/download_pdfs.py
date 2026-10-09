@@ -29,7 +29,7 @@ for url in URLS:
             f.write(r.read())
         print("downloaded", name)
         ok += 1
-    except Exception as e:
+    except (OSError,ValueError) as e:
         print("FAILED", name, "->", e)
  
 if ok == 0:

@@ -4,6 +4,7 @@ import uuid
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from decimal import Decimal
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -111,7 +112,7 @@ def create_app(retriever=None, users: UserStore | None = None,
         start = time.perf_counter()
         try:
             response = await call_next(request)
-        except Exception:
+        except Exception: # noqa: BLE001
             log.exception("unhandled error", extra={"fields": {"request_id": rid}})
             response = JSONResponse({"detail": "Internal server error"}, status_code=500)
         response.headers["X-Request-ID"] = rid
@@ -136,7 +137,7 @@ def create_app(retriever=None, users: UserStore | None = None,
         return {"status": "ready"}
 
     @app.post("/ask", response_model=Answer)
-    def ask(body: Question, request: Request, user: User = Depends(authenticate)):
+    def ask(body: Question, request: Request, user: Annotated[User, Depends(authenticate)]):
         allowed, retry_after = app.state.limiter.check(user.name, user.rate_limit_per_min)
         if not allowed:
             raise HTTPException(429, "Rate limit exceeded",
@@ -145,7 +146,7 @@ def create_app(retriever=None, users: UserStore | None = None,
         start = time.perf_counter()
         try:
             chunks = app.state.retriever.retrieve(body.question, allowed=user.allowed)
-        except Exception:
+        except Exception: # noqa: BLE001
             log.exception("retrieval failed",
                           extra={"fields": {"request_id": request.state.request_id}})
             raise HTTPException(500, "Retrieval failed")
@@ -153,7 +154,7 @@ def create_app(retriever=None, users: UserStore | None = None,
 
         try:
             result = app.state.answer_fn(body.question, chunks)
-        except Exception:
+        except Exception: # noqa: BLE001
             log.exception("generation failed",
                           extra={"fields": {"request_id": request.state.request_id}})
             raise HTTPException(503, "Answer service temporarily unavailable")
@@ -175,7 +176,7 @@ def create_app(retriever=None, users: UserStore | None = None,
     def assess_claim_endpoint(
         body: ClaimAssessmentRequest,
         request: Request,
-        user: User = Depends(authenticate),
+        user: Annotated[User, Depends(authenticate)],
     ):
         allowed, retry_after = app.state.limiter.check(
             user.name, user.rate_limit_per_min
@@ -233,7 +234,7 @@ def create_app(retriever=None, users: UserStore | None = None,
                 missing_information=body.missing_information,
             )
 
-        except Exception:
+        except Exception: # noqa: BLE001
             log.exception(
                 "claim assessment failed",
                 extra={
