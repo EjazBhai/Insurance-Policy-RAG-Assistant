@@ -74,21 +74,31 @@ Questions outside the documents return `"No answer found in the provided policy 
 
 ## Evaluation
 
-Eval questions are **LLM-generated from indexed chunks and manually spot-checked**
-(`python -m eval.generate_questions`). A retrieval hit means the correct
-source file and page appear in the top 5.
+The retrieval benchmark uses a labelled dataset of 40 questions. A hit means
+the expected source file and page appear in the top 5 results.
 
-Retrieval (`python -m eval.hit_rate`):
+| Retrieval mode | Hit rate@5 | MRR |
+|---|---:|---:|
+| Semantic | 78% | 0.63 |
+| Hybrid (semantic + BM25) | 82% | 0.67 |
+| Hybrid + reranking | 93% | 0.79 |
 
-| Mode | Hit rate@5 | MRR |
-|---|---|---|
-| Semantic only | TBD | TBD |
-| Hybrid (semantic + BM25) | TBD | TBD |
-| Hybrid + re-rank | TBD | TBD |
+Hybrid retrieval with cross-encoder reranking performed best on this dataset.
+These results are specific to the current labelled questions and are not a
+guarantee of performance on unseen policies.
 
-Generation (`python -m eval.judge`): answered rate TBD, LLM-judged groundedness TBD, p95 latency TBD.
+Run the evaluations from the project root:
 
-> Fill these in from `eval/results_*.md` after running the scripts.
+```bash
+python -m eval.hit_rate
+python -m eval.judge
+```
+
+The retrieval report is written to `eval/results_retrieval.md`.
+The generation report is written to `eval/results_generation.md`.
+
+The optional Streamlit Evaluation Lab is in `eval/hf_space/`. See
+[`eval/HUGGING_FACE_DEPLOYMENT.md`](eval/HUGGING_FACE_DEPLOYMENT.md) for deployment instructions.
 
 ## Limitations
 

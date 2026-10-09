@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-10-09T18:13:40.855624+00:00",
+  "metrics": {
+    "questions_evaluated": 30,
+    "answered_rate": 1.0,
+    "groundedness": 0.97,
+    "median_latency_seconds": 9.05,
+    "p95_latency_seconds": 11.82
+  },
+  "limitations": [
+    "Groundedness is evaluated by an LLM judge, not human review.",
+    "Results reflect the evaluated questions and current model configuration."
+  ]
+}
