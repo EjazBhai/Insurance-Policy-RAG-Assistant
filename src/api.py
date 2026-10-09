@@ -2,12 +2,19 @@ import os
 import time
 import uuid
 from contextlib import asynccontextmanager
+from dataclasses import asdict
+from decimal import Decimal
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, field_validator
 
+from src.claims.evidence import extract_evidence_candidates
+from src.claims.schemas import Claim as ClaimData
+from src.claims.schemas import LineItem
+from src.claims.service import assess_claim
 from src.observability import log, log_event, setup_logging
 from src.security import RateLimiter, User, UserStore
 
@@ -38,6 +45,30 @@ class Answer(BaseModel):
     sources: list[Source]
     user: str
     latency_ms: int
+    request_id: str
+
+
+
+class ClaimLineItemRequest(BaseModel):
+    category: str = Field(min_length=1, max_length=100)
+    description: str = Field(min_length=1, max_length=500)
+    amount: float = Field(ge=0)
+    payable: bool = True
+
+
+class ClaimAssessmentRequest(BaseModel):
+    items: list[ClaimLineItemRequest] = Field(min_length=1)
+    required_facts_complete: bool = False
+    missing_information: list[str] = Field(default_factory=list)
+
+
+class ClaimAssessmentResponse(BaseModel):
+    eligibility_status: str
+    reasons: list[str]
+    evidence: list[dict]
+    missing_information: list[str]
+    payout_status: str
+    estimate: dict | None
     request_id: str
 
 
@@ -81,7 +112,7 @@ def create_app(retriever=None, users: UserStore | None = None,
         start = time.perf_counter()
         try:
             response = await call_next(request)
-        except Exception:
+        except Exception: # noqa: BLE001
             log.exception("unhandled error", extra={"fields": {"request_id": rid}})
             response = JSONResponse({"detail": "Internal server error"}, status_code=500)
         response.headers["X-Request-ID"] = rid
@@ -106,7 +137,7 @@ def create_app(retriever=None, users: UserStore | None = None,
         return {"status": "ready"}
 
     @app.post("/ask", response_model=Answer)
-    def ask(body: Question, request: Request, user: User = Depends(authenticate)):
+    def ask(body: Question, request: Request, user: Annotated[User, Depends(authenticate)]):
         allowed, retry_after = app.state.limiter.check(user.name, user.rate_limit_per_min)
         if not allowed:
             raise HTTPException(429, "Rate limit exceeded",
@@ -115,7 +146,7 @@ def create_app(retriever=None, users: UserStore | None = None,
         start = time.perf_counter()
         try:
             chunks = app.state.retriever.retrieve(body.question, allowed=user.allowed)
-        except Exception:
+        except Exception: # noqa: BLE001
             log.exception("retrieval failed",
                           extra={"fields": {"request_id": request.state.request_id}})
             raise HTTPException(500, "Retrieval failed")
@@ -123,7 +154,7 @@ def create_app(retriever=None, users: UserStore | None = None,
 
         try:
             result = app.state.answer_fn(body.question, chunks)
-        except Exception:
+        except Exception: # noqa: BLE001
             log.exception("generation failed",
                           extra={"fields": {"request_id": request.state.request_id}})
             raise HTTPException(503, "Answer service temporarily unavailable")
@@ -139,6 +170,106 @@ def create_app(retriever=None, users: UserStore | None = None,
         return Answer(answer=result["answer"], sources=result["sources"],
                       user=user.name, latency_ms=int((t_done - start) * 1000),
                       request_id=request.state.request_id)
+
+    
+    @app.post("/claims/assess", response_model=ClaimAssessmentResponse)
+    def assess_claim_endpoint(
+        body: ClaimAssessmentRequest,
+        request: Request,
+        user: Annotated[User, Depends(authenticate)],
+    ):
+        allowed, retry_after = app.state.limiter.check(
+            user.name, user.rate_limit_per_min
+        )
+        if not allowed:
+            raise HTTPException(
+                429,
+                "Rate limit exceeded",
+                headers={"Retry-After": str(retry_after)},
+            )
+
+        claim = ClaimData(
+            items=[
+                LineItem(
+                    category=item.category,
+                    description=item.description,
+                    amount=Decimal(str(item.amount)),
+                    payable=item.payable,
+                )
+                for item in body.items
+            ]
+        )
+
+        try:
+            # Until policy retrieval is connected, there is no
+            # trusted policy evidence or calculation terms.
+            # result = assess_claim(
+            #     claim=claim,
+            #     terms=None,
+            #     findings=[],
+            #     required_facts_complete=body.required_facts_complete,
+            #     missing_information=body.missing_information,
+            # )
+            
+            passages = app.state.retriever.retrieve(
+                " ".join(
+                    [
+                        "insurance claim coverage exclusions",
+                        *[
+                            f"{item.category} {item.description}"
+                            for item in body.items
+                        ],
+                    ]
+                ),
+                allowed=user.allowed,
+            )
+
+            findings = extract_evidence_candidates(passages)
+
+            result = assess_claim(
+                claim=claim,
+                terms=None,
+                findings=findings,
+                required_facts_complete=body.required_facts_complete,
+                missing_information=body.missing_information,
+            )
+
+        except Exception: # noqa: BLE001
+            log.exception(
+                "claim assessment failed",
+                extra={
+                    "fields": {
+                        "request_id": request.state.request_id,
+                    }
+                },
+            )
+            raise HTTPException(500, "Claim assessment failed")
+
+        log_event(
+            "claim_assessment",
+            request_id=request.state.request_id,
+            user=user.name,
+            line_items=len(body.items),
+            eligibility_status=result.eligibility.status,
+            payout_status=result.payout_status,
+        )
+
+        return ClaimAssessmentResponse(
+            eligibility_status=result.eligibility.status,
+            reasons=result.eligibility.reasons,
+            evidence=[
+                asdict(finding)
+                for finding in result.eligibility.evidence
+            ],
+            missing_information=result.missing_information,
+            payout_status=result.payout_status,
+            estimate=(
+                asdict(result.estimate)
+                if result.estimate is not None
+                else None
+            ),
+            request_id=request.state.request_id,
+        )
 
     return app
 

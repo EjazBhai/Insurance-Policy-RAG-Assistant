@@ -24,7 +24,7 @@ def load_pdfs(folder):
                 text = (page.extract_text() or "").strip()
                 if text:
                     pages.append({"text": text, "source": f, "page": i})
-        except Exception as e:
+        except (OSError, ValueError) as e:
             print(f"  Skipping {f}: {e}")
     return files, pages
 
@@ -60,24 +60,25 @@ def main():
 
     model = SentenceTransformer(EMBEDDING_MODEL)
     client = chromadb.PersistentClient(path=CHROMA_DIR)
+
     try:
         client.delete_collection(COLLECTION_NAME)
-    except Exception:
+    except chromadb.errors.NotFoundError:
         pass
+
     col = client.get_or_create_collection(COLLECTION_NAME)
 
-    batch = 64
-    for i in range(0, len(chunks), batch):
-        b = chunks[i:i + batch]
-        embeddings = model.encode([c["text"] for c in b],
-                                  normalize_embeddings=True).tolist()
+    batch_size = 32
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i:i + batch_size]
+        embeddings = model.encode([c["text"] for c in batch], convert_to_numpy=True)
         col.add(
-            ids=[c["id"] for c in b],
-            documents=[c["text"] for c in b],
+            ids=[c["id"] for c in batch],
+            documents=[c["text"] for c in batch],
             embeddings=embeddings,
-            metadatas=[{"source": c["source"], "page": c["page"]} for c in b],
+            metadatas=[{"source": c["source"], "page": c["page"]} for c in batch],
         )
-        print(f"  embedded {min(i + batch, len(chunks))}/{len(chunks)}")
+        print(f"  embedded {min(i + batch_size, len(chunks))}/{len(chunks)}")
     print(f"Stored in {CHROMA_DIR}/")
 
 

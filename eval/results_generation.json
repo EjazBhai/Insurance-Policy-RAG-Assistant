@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-10-09T18:13:40.855624+00:00",
+  "metrics": {
+    "answered_rate": 1.0,
+    "llm_judged_groundedness_rate": 0.97,
+    "median_latency_ms": 9050,
+    "p95_latency_ms": 11820,
+    "judge_coverage": 0.97
+  },
+  "limitations": [
+    "Groundedness is evaluated by an LLM judge, not human review.",
+    "Results reflect the evaluated questions and current model configuration.",
+    "Per-question judgements and gold-evidence retrieval rate were not recorded in this summary report."
+  ],
+  "n_questions": 30
+}

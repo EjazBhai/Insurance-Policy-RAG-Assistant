@@ -1,5 +1,5 @@
 Questions evaluated: 30
 Answered (not 'no answer'): 1.00
-LLM-judged groundedness: 1.00
-Median latency: 8.25 s (retrieval + generation)
-p95 latency: 10.43 s
+LLM-judged groundedness: 0.97
+Median latency: 9.05 s (retrieval + generation)
+p95 latency: 11.82 s
