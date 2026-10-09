@@ -74,30 +74,52 @@ Questions outside the documents return `"No answer found in the provided policy 
 
 ## Evaluation
 
-Eval questions are **LLM-generated from indexed chunks and manually spot-checked**
-(`python -m eval.generate_questions`). A retrieval hit means the correct
-source file and page appear in the top 5.
+The project includes a 40-question retrieval benchmark and a separate generation evaluation to assess retrieval quality, answer grounding, and latency.
 
-Retrieval (`python -m eval.hit_rate`):
+### Retrieval Evaluation
 
-| Mode | Hit rate@5 | MRR |
-|---|---|---|
-| Semantic only | TBD | TBD |
-| Hybrid (semantic + BM25) | TBD | TBD |
-| Hybrid + re-rank | TBD | TBD |
+A retrieval hit means the expected source file and page appear within the top 5 retrieved results.
 
-Generation (`python -m eval.judge`): answered rate TBD, LLM-judged groundedness TBD, p95 latency TBD.
+| Retrieval strategy | Hit Rate@5 | MRR |
+|---|---:|---:|
+| Semantic search | 78% | 0.630 |
+| Hybrid search (semantic + BM25) | 82% | 0.670 |
+| Hybrid search + re-ranking | **93%** | **0.790** |
 
-> Fill these in from `eval/results_*.md` after running the scripts.
+**Key finding:** Hybrid retrieval with re-ranking achieved the highest measured retrieval performance on the 40-question evaluation set.
 
-## Limitations
+### Generation Evaluation
 
-- Eval questions are generated from the same chunks they test, so they share
-  wording with the source text. This likely makes hit rates optimistic.
-- Groundedness is scored by an LLM judge, not human review and not RAGAS.
-- Several insurers use near-identical wording, so a "miss" can still be a correct answer from another document.
-- Scanned (image-only) PDFs are not supported (no OCR).
-- Free-tier API rate limits apply.
+| Metric | Measured result |
+|---|---:|
+| Questions evaluated | 30 |
+| Answered rate | 100% |
+| LLM-judged groundedness | 97% |
+| Median latency | 9.05 seconds |
+| P95 latency | 11.82 seconds |
+
+Groundedness is estimated using an LLM judge and should not be interpreted as a human-verified accuracy score.
+
+### How to Reproduce
+
+Run the evaluation modules from the project environment:
+
+```bash
+python -m eval.hit_rate
+python -m eval.judge
+```
+
+The generation evaluation requires the configured LLM API credentials. Results are saved in the evaluation reports.
+
+### Evaluation Limitations
+
+- The benchmark contains 40 labelled retrieval questions and 30 generation-evaluation questions.
+- Evaluation questions were generated from indexed chunks, so wording overlap may make retrieval results optimistic.
+- Groundedness is scored by an LLM judge, not independently verified by human reviewers.
+- Similar wording across insurance documents can affect source matching.
+- Scanned image-only PDFs are not supported without OCR.
+- Latency and API availability depend on the model provider and runtime environment.
+
 
 ## Source documents
 
