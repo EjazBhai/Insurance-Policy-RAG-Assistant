@@ -35,5 +35,6 @@
     "Evaluation uses the current 40-question labelled dataset.",
     "A hit requires an exact source file and page match in the top 5 results.",
     "Latency was not measured by the existing retrieval benchmark."
-  ]
+  ],
+  "n_questions": 40
 }
