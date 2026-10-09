@@ -75,3 +75,30 @@ def test_preserves_policy_citation():
         "The maximum payable amount is limited to the stated sublimit."
     )
     assert result[0].verified is False
+
+
+
+def test_ambiguous_exclusion_language_requires_review():
+    result = extract_rule_candidates([
+        {
+            "text": (
+                "The exclusion does not apply in certain circumstances."
+            ),
+            "source": "policy.pdf",
+            "page": 10,
+        }
+    ])
+
+    assert all(item.rule_type != "exclusion" for item in result)
+
+
+def test_ambiguous_coverage_condition_is_not_verified():
+    result = extract_rule_candidates([
+        {
+            "text": "Hospitalization coverage is subject to the waiting period.",
+            "source": "policy.pdf",
+            "page": 11,
+        }
+    ])
+
+    assert all(item.verified is False for item in result)
