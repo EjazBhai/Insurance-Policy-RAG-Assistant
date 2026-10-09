@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-10-09T17:49:39.634338+00:00",
+  "question_count": 40,
+  "k": 5,
+  "metrics": [
+    {
+      "mode": "semantic",
+      "label": "Semantic",
+      "hits": 31,
+      "hit_rate_at_k": 0.78,
+      "mrr_at_k": 0.63,
+      "mean_latency_ms": null,
+      "p95_latency_ms": null
+    },
+    {
+      "mode": "hybrid",
+      "label": "Hybrid",
+      "hits": 33,
+      "hit_rate_at_k": 0.82,
+      "mrr_at_k": 0.67,
+      "mean_latency_ms": null,
+      "p95_latency_ms": null
+    },
+    {
+      "mode": "hybrid_rerank",
+      "label": "Hybrid + reranking",
+      "hits": 37,
+      "hit_rate_at_k": 0.93,
+      "mrr_at_k": 0.79,
+      "mean_latency_ms": null,
+      "p95_latency_ms": null
+    }
+  ],
+  "limitations": [
+    "Evaluation uses the current 40-question labelled dataset.",
+    "A hit requires an exact source file and page match in the top 5 results.",
+    "Latency was not measured by the existing retrieval benchmark."
+  ]
+}
