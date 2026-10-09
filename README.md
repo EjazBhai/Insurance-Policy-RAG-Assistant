@@ -1,130 +1,185 @@
-# Policy RAG Assistant
+# 🛡️ Insurance Policy RAG Assistant
 
-Ask questions about insurance policy documents and get **source-cited answers**.
-Retrieval is hybrid (semantic + BM25) with a cross-encoder re-ranker, and the
-LLM is instructed to answer only from the retrieved passages or say
-"No answer found."
+**Ask questions about insurance policy documents and receive evidence-backed answers with source citations.**
 
-Built with free tools only: local embeddings, local vector DB, and Groq's free API.
+A retrieval-augmented generation (RAG) project built to make long policy wordings easier to search and understand. It combines semantic retrieval, BM25 keyword search, reciprocal-rank fusion, and cross-encoder reranking. Answers are grounded in retrieved policy passages; when evidence is insufficient, the system is instructed to say so.
 
-## Architecture
+<p align="center">
+  <strong>Hybrid Retrieval</strong> · <strong>Reranking</strong> · <strong>Source Citations</strong> · <strong>Evaluation Dashboard</strong>
+</p>
+
+## ✨ Highlights
+
+- **Evidence-first answers** — responses include the source document, page, and supporting snippet.
+- **Hybrid search** — combines vector similarity with BM25 keyword matching.
+- **Cross-encoder reranking** — reorders candidates to improve the relevance of the final context.
+- **Grounded generation** — prompts the LLM to use retrieved evidence and abstain when the documents do not answer the question.
+- **Evaluation suite** — labelled retrieval benchmark plus an LLM-as-judge generation evaluation.
+- **API-first design** — FastAPI endpoint with interactive API documentation.
+- **Local retrieval components** — embeddings and the Chroma vector store run locally; answer generation uses Groq's API.
+
+## 📊 Evaluation Results
+
+### Retrieval benchmark
+
+Tested on **40 labelled questions**. A hit means the expected source file and page appeared among the top five retrieved results.
+
+| Retrieval strategy | Hit rate@5 | MRR |
+|---|---:|---:|
+| Semantic search | 78% | 0.63 |
+| Hybrid (semantic + BM25) | 82% | 0.67 |
+| **Hybrid + cross-encoder reranking** | **93%** | **0.79** |
+
+### Generation evaluation
+
+| Metric | Result |
+|---|---:|
+| Questions evaluated | 30 |
+| Answered rate | 100% |
+| LLM-judged groundedness | 97% |
+| Median latency | 9.05 s |
+| p95 latency | 11.82 s |
+
+**How to interpret these numbers:** results are from the current evaluation dataset. Groundedness is an LLM-judge estimate, not a human-verified accuracy score. The questions were created from the same policy chunks used for retrieval, which may make retrieval results optimistic. These metrics do not guarantee performance on unseen policies.
+
+## 🏗️ Architecture
 
 ```mermaid
 flowchart LR
-    A[Policy PDFs] --> B[ingest.py: extract, chunk, embed]
-    B --> C[(Chroma vector DB)]
+    A[Policy PDFs] --> B[Extract text, chunk, embed]
+    B --> C[(Persistent Chroma index)]
     Q[User question] --> D[Semantic search]
     Q --> E[BM25 keyword search]
     C --> D
     C --> E
     D --> F[Reciprocal Rank Fusion]
     E --> F
-    F --> G[Cross-encoder re-rank]
-    G --> H[Groq Llama 3.3 70B: grounded answer + citations]
-    H --> I[FastAPI /ask]
+    F --> G[Cross-encoder reranking]
+    G --> H[Relevant policy passages]
+    H --> I[Groq-hosted Llama 3.3 70B]
+    I --> J[Grounded answer + citations]
+    J --> K[FastAPI /ask]
 ```
 
-## Stack
+## 🧰 Technology Stack
 
-| Part | Choice |
+| Component | Technology |
 |---|---|
-| Embeddings | `BAAI/bge-small-en-v1.5` (local) |
-| Vector DB | Chroma (local, persistent) |
-| Keyword search | `rank-bm25` |
-| Re-ranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` |
-| LLM | Llama 3.3 70B via Groq free tier |
-| API | FastAPI |
+| API | FastAPI, Uvicorn |
+| Embeddings | `BAAI/bge-small-en-v1.5` |
+| Vector store | ChromaDB (persistent) |
+| Keyword retrieval | `rank-bm25` |
+| Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` |
+| Answer generation | Llama 3.3 70B via Groq API |
+| Evaluation UI | Streamlit |
+| Language | Python |
 
-## Setup
+## 🚀 Run Locally
 
-```bash
+### 1. Clone and install
+
+```powershell
 git clone https://github.com/EjazBhai/Insurance-Policy-RAG-Assistant.git
 cd Insurance-Policy-RAG-Assistant
 python -m venv .venv
-.venv\Scripts\activate          # Windows  (Mac/Linux: source .venv/bin/activate)
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-1. Create `.env` with `GROQ_API_KEY=your_key` (free key at console.groq.com).
-2. Put policy PDFs in `data/raw/` (see sources below).
-3. Build the index and start the API:
+### 2. Configure the API key
 
-```bash
+Create a `.env` file in the project root:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+```
+
+Get a key from [Groq Console](https://console.groq.com/). **Never commit your real `.env` file or expose API keys in screenshots or logs.**
+
+### 3. Add policy documents and build the index
+
+Place policy PDFs in `data/raw/`, then run:
+
+```powershell
 python -m src.ingest
+```
+
+### 4. Start the API
+
+```powershell
 uvicorn src.api:app --reload
 ```
 
-Open http://127.0.0.1:8000/docs and try `POST /ask`.
+Open **http://127.0.0.1:8000/docs** to explore the API and try `POST /ask`.
 
-## Example
+## 💬 Example Request
 
-Request:
-```json
-{ "question": "Is dental treatment covered?" }
-```
-Response (shortened):
 ```json
 {
-  "answer": "Dental treatment is not covered under the policy unless it requires hospitalisation. [1]",
-  "sources": [{ "file": "Health Protector Policy Wording.pdf", "page": 12, "snippet": "..." }],
-  "latency_ms": 2300
+  "question": "Is dental treatment covered?"
 }
 ```
-Questions outside the documents return `"No answer found in the provided policy documents."`
 
-## Evaluation
+The response schema includes an answer, source evidence (document/page/snippet), and latency. Exact coverage depends on the policy documents you have indexed. If the indexed evidence does not support an answer, the system is instructed to return an abstention rather than invent coverage.
 
-The retrieval benchmark uses a labelled dataset of 40 questions. A hit means
-the expected source file and page appear in the top 5 results.
+## 🧪 Run the Evaluations
 
-| Retrieval mode | Hit rate@5 | MRR |
-|---|---:|---:|
-| Semantic | 78% | 0.63 |
-| Hybrid (semantic + BM25) | 82% | 0.67 |
-| Hybrid + reranking | 93% | 0.79 |
+From the project root:
 
-Hybrid retrieval with cross-encoder reranking performed best on this dataset.
-These results are specific to the current labelled questions and are not a
-guarantee of performance on unseen policies.
-
-Run the evaluations from the project root:
-
-```bash
+```powershell
 python -m eval.hit_rate
 python -m eval.judge
 ```
 
-The retrieval report is written to `eval/results_retrieval.md`.
-The generation report is written to `eval/results_generation.md`.
+Reports are written to:
 
-The optional Streamlit Evaluation Lab is in `eval/hf_space/`. See
-[`eval/HUGGING_FACE_DEPLOYMENT.md`](eval/HUGGING_FACE_DEPLOYMENT.md) for deployment instructions.
+- `eval/results_retrieval.md`
+- `eval/results_generation.md`
 
-## Limitations
+The evaluation dashboard code and deployment notes are in `eval/hf_space/` and `eval/HUGGING_FACE_DEPLOYMENT.md`. The dashboard displays saved evaluation reports; it is separate from the user-facing policy Q&A application.
 
-- Eval questions are generated from the same chunks they test, so they share
-  wording with the source text. This likely makes hit rates optimistic.
-- Groundedness is scored by an LLM judge, not human review and not RAGAS.
-- Several insurers use near-identical wording, so a "miss" can still be a correct answer from another document.
-- Scanned (image-only) PDFs are not supported (no OCR).
-- Free-tier API rate limits apply.
+## 📁 Project Structure
 
-## Source documents
-
-Public policy wordings, downloaded from insurers' websites (not redistributed in this repo):
-
-- Universal Sompo, A Plus Health: https://www.universalsompo.com/assets/file/a-plus-health-insurance/a-plus-health-insurance-policy-wording.pdf
-- IFFCO Tokio, Health Protector: https://www.iffcotokio.co.in/content/dam/iffcotokio/iffco-pdf/sites/default/files/pdf/Health%20Protector%20Policy%20Wording.pdf
-- United India, Individual Health Insurance prospectus: https://uiic.co.in/web/sites/default/files/Policy-Document/20240325_Prospectus_IHIP.pdf
-- Religare, Health Care Advantage: https://www.eindiainsurance.com/brochure/religare-health-care-advantage-policy-wordings.pdf
-
-## Docker (optional)
-
-```bash
-docker build -t policy-rag .
-docker run -p 8000:8000 --env-file .env -v ${PWD}/chroma_db:/app/chroma_db policy-rag
+```text
+├── src/
+│   ├── api.py              # FastAPI endpoints
+│   ├── ingest.py           # PDF ingestion and indexing
+│   └── ...                 # Retrieval and application modules
+├── data/
+│   ├── raw/                # Add policy PDFs here (not bundled)
+│   └── eval/               # Labelled evaluation questions
+├── eval/
+│   ├── hit_rate.py         # Retrieval benchmark
+│   ├── judge.py            # Generation evaluation
+│   ├── results_retrieval.md
+│   ├── results_generation.md
+│   └── hf_space/           # Streamlit evaluation dashboard
+├── requirements.txt
+└── README.md
 ```
 
-## License
+## ⚠️ Limitations
 
-MIT, see [LICENSE](LICENSE).
+- Evaluation coverage is small and results may be optimistic because questions were derived from the indexed chunks.
+- Groundedness is judged by an LLM; independent human review is still needed.
+- Similar wording across insurers can make source attribution difficult.
+- Image-only scanned PDFs are not supported unless OCR is added.
+- Groq rate limits and model availability may affect latency and throughput.
+- This tool helps locate policy wording; it does not replace the full policy contract or professional advice.
+
+## 📚 Sample Policy Sources
+
+The project was evaluated using publicly available policy documents. They are **not redistributed in this repository**; retrieve them from the original publisher and check the current version before use.
+
+- [Universal Sompo — A Plus Health policy wording](https://www.universalsompo.com/assets/file/a-plus-health-insurance/a-plus-health-insurance-policy-wording.pdf)
+- [IFFCO Tokio — Health Protector policy wording](https://www.iffcotokio.co.in/content/dam/iffcotokio/iffco-pdf/sites/default/files/pdf/Health%20Protector%20Policy%20Wording.pdf)
+- [United India Insurance — Individual Health Insurance prospectus](https://uiic.co.in/web/sites/default/files/Policy-Document/20240325_Prospectus_IHIP.pdf)
+- [Religare — Health Care Advantage policy wording](https://www.eindiainsurance.com/brochure/religare-health-care-advantage-policy-wordings.pdf)
+
+## 🐳 Docker (Optional)
+
+If Docker is configured, use the Docker setup included in the repository. Keep API keys in an untracked `.env` file or a secret manager; never hard-code credentials into the image or commit them to Git.
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE).
